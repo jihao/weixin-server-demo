@@ -169,7 +169,7 @@ public class WechatMpAutoConfiguration {
 				System.out.println(echoMessage);
 				WxMpXmlOutTextMessage m = WxMpXmlOutMessage.TEXT().content(echoMessage)
 		                .fromUser(wxMessage.getToUserName()).toUser(wxMessage.getFromUserName()).build();
-				LOGGER.error("outMessage" + m.toXml());
+				LOGGER.info("outMessage" + m.toXml());
 				return m;
 			}
 		};

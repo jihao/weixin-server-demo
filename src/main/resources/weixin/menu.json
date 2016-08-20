@@ -1,0 +1,48 @@
+{
+"menu" : {
+    "button": [
+        {
+            "type": "click", 
+            "name": "我要购票", 
+            "key": "V1001_TICKET"
+        }, 
+        {
+            "name": "采购专员", 
+            "sub_button": [
+                {
+                    "type": "scancode_waitmsg", 
+                    "name": "所有申请", 
+                    "key": "rselfmenu_0_0", 
+                    "sub_button": [ ]
+                }, 
+                {
+                    "type": "click", 
+                    "name": "邀请员工", 
+                    "key": "V1002_INVITE", 
+                    "sub_button": [ ]
+                }
+            ]
+        }, 
+        {
+            "name": "我的账号", 
+            "sub_button": [
+                {
+                    "type": "view", 
+                    "name": "关于我们", 
+                    "url": "http://www.qccost.com/"
+                }, 
+                {
+                    "type": "view", 
+                    "name": "企业设置", 
+                    "url": "http://www.qccost.com/"
+                }, 
+                {
+                    "type": "view", 
+                    "name": "我的信息", 
+                    "url": "https://open.weixin.qq.com/connect/oauth2/authorize?appid=#{appid}&redirect_uri=#{redirect_uri}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect"
+                }
+            ]
+        }
+    ]
+}
+}

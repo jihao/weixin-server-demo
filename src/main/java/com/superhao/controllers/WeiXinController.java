@@ -1,24 +1,42 @@
 package com.superhao.controllers;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.httpclient.HttpURL;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import me.chanjar.weixin.common.bean.WxMenu;
+import me.chanjar.weixin.common.exception.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpConfigStorage;
 import me.chanjar.weixin.mp.api.WxMpMessageRouter;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.WxMpXmlOutMessage;
+import me.chanjar.weixin.mp.bean.result.WxMpOAuth2AccessToken;
+import me.chanjar.weixin.mp.bean.result.WxMpUser;
 
 @Controller
 @RequestMapping("/weixin")
@@ -32,6 +50,12 @@ public class WeiXinController {
 
 	@Autowired
 	WxMpMessageRouter wxMpMessageRouter;
+	
+	@Value("${spring.wechatmp.app-id}")
+	String appid;
+	
+	@Value("${wexin.menu.redirect_uri}")
+	String redirect_url;
 	
 	@RequestMapping(value = "/connect", method = { RequestMethod.GET })
 	@ResponseBody
@@ -75,7 +99,7 @@ public class WeiXinController {
 			inMessage = WxMpXmlMessage.fromEncryptedXml(request.getInputStream(), wxMpConfigStorage, timestamp, nonce,
 			        msgSignature);
 		} else {
-			return "不可识别的加密类型";
+			return "<response>不可识别的加密类型</response>";
 		}
 
 		WxMpXmlOutMessage outMessage = wxMpMessageRouter.route(inMessage);
@@ -87,9 +111,58 @@ public class WeiXinController {
 				return outMessage.toEncryptedXml(wxMpConfigStorage);
 			}
 		} else {
-			LOGGER.error("outMessage is null");
+			LOGGER.error("<response>outMessage is null</response>");
 		}
-		return "服务号不可用";
+		return "<response>服务号不可用</response>";
 	}
 
+	/**
+	 * 网页授权获取用户基本信息之后跳转的页面
+	 * 
+	 * http://mp.weixin.qq.com/wiki/17/c0f37d5704f0b64713d5d2c37b468d75.html
+	 * @param code
+	 * @param state
+	 * @param model
+	 * @return
+	 * @throws WxErrorException 
+	 */
+	@RequestMapping(value="/user-info", method={RequestMethod.GET} )
+	public String showUserInfo(@RequestParam String code, @RequestParam(required=false) String state, Model model) throws WxErrorException {
+//		1 第一步：用户同意授权，获取code
+//		2 第二步：通过code换取网页授权access_token
+//		3 第三步：刷新access_token（如果需要）
+//		4 第四步：拉取用户信息(需scope为 snsapi_userinfo)
+//		5 附：检验授权凭证（access_token）是否有效
+		
+		//获取code后，请求以下链接获取access_token： 
+		//https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code
+		WxMpOAuth2AccessToken oAuth2AccessToken = wxMpService.oauth2getAccessToken(code);
+		if(!wxMpService.oauth2validateAccessToken(oAuth2AccessToken)){
+			wxMpService.oauth2refreshAccessToken(oAuth2AccessToken.getRefreshToken());
+		}
+		WxMpUser user = wxMpService.oauth2getUserInfo(oAuth2AccessToken, "zh_CN");
+		LOGGER.info(user.toString());
+		model.addAttribute("user", user);
+		return "user-info";
+	}
+	
+	/**
+	 * 演示创建自定义订单
+	 * @return
+	 * @throws WxErrorException
+	 * @throws IOException
+	 */
+	@RequestMapping(value="/menu/create", method={RequestMethod.PUT}, produces={MediaType.APPLICATION_JSON_UTF8_VALUE})
+	@ResponseBody
+	public String createMenu() throws WxErrorException, IOException {
+		wxMpService.getMenuService().menuDelete();
+		InputStream is = this.getClass().getClassLoader().getResourceAsStream("weixin/menu.json");
+		String json = IOUtils.toString(is, StandardCharsets.UTF_8);
+		json = json.replaceAll("#\\{appid}", this.appid);
+		json = json.replaceAll("#\\{redirect_uri}", URLEncoder.encode(this.redirect_url, "utf8"));
+		LOGGER.info(json);
+		
+		wxMpService.getMenuService().menuCreate(WxMenu.fromJson(json));
+		return "{\"status\":0,\"message\":\"succeed\"}";
+	}
 }
