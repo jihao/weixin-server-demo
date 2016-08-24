@@ -51,7 +51,22 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <!-- 本地调试
+        <dependency>
+            <groupId>com.iflytek</groupId>
+            <artifactId>iflytek-cloud</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/Msc.jar</systemPath>
+        </dependency> 
+         -->
+         <!-- 打包部署后运行，需要将讯飞的lib安装到repository，或者传到Nexus服务器上 -->
+         <!-- mvn install:install-file -Dfile=lib/Msc.jar  -DgroupId=com.iflytek -DartifactId=iflytek-cloud -Dversion=1.0 -Dpackaging=jar -DlocalRepositoryPath=./lib-->
+         <dependency>
+            <groupId>com.iflytek</groupId>
+            <artifactId>iflytek-cloud</artifactId>
+            <version>1.0</version>
+        </dependency>
         <dependency>
             <groupId>jdk.tools</groupId>
             <artifactId>jdk.tools</artifactId>
@@ -76,6 +91,10 @@
             <groupId>com.github.binarywang</groupId>
             <artifactId>weixin-java-mp</artifactId>
             <version>2.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
         </dependency>
     </dependencies>
 
@@ -114,5 +133,4 @@
             </properties>
         </profile>
     </profiles>
-
 </project>

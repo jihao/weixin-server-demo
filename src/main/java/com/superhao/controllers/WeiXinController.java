@@ -111,7 +111,7 @@ public class WeiXinController {
 				return outMessage.toEncryptedXml(wxMpConfigStorage);
 			}
 		} else {
-			LOGGER.error("<response>outMessage is null</response>");
+			return "";
 		}
 		return "<response>服务号不可用</response>";
 	}
