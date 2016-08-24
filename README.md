@@ -18,9 +18,9 @@
 		spring.wechatmp.token=
 		# 授权查看个人信息，菜单里面的回调地址
 		wexin.menu.redirect_uri=
-		# Xun fei yun appid, for semantic recognize demo
+		# 讯飞云的AppID，语义场景我设置为机票、火车票、酒店
 		xfyun.appid=
-		# For semantic recognize demo， customized flight search API
+		# 机票搜索API，我是用的私有API，fork的话这里就别配置了，从log里可以看到语义识别的结果
 		flight.search_url=
 		flight.user_token=
 		
@@ -38,7 +38,7 @@ Changed the port when necessary
 	
 # 本地调试微信公众平台服务端
 
-安装 [ngrok](https://ngrok.com/), Mac,Windows,Linux版本都有的，然后启动。
+安装 [ngrok](https://ngrok.com/), Mac,Windows,Linux版本都有的，然后启动。如果ngrok不通，可以使用国内的[natapp](http://natapp.cn)
 
 	ngrok http 9000
 	
